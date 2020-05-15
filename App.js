@@ -1,114 +1,79 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import React, {useState, useEffect} from 'react';
+import {StyleSheet, Image, View, ScrollView, ActivityIndicator} from 'react-native';
+import Header from './components/Header'
+import Formulario from './components/Formulario'
+import Cotizacion from './components/Cotizacion'
+import axios from 'axios';
 
-import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-} from 'react-native';
+/*
+color palette
+fbfbfb
+fff1c1
+78b7bb
+808b97
+*/
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const App = () => {
 
-const App: () => React$Node = () => {
+  const [moneda, setMoneda] = useState('');
+  const [criptomoneda, setCriptomoneda] = useState('');
+  const [consultaApi, setConsultaApi] = useState(false);
+  const [resultado, setResultado] = useState({});
+  const [cargando, setCargando] = useState(false);
+
+  useEffect(() => {
+    const cotizarCriptomoneda = async () => {
+      if (consultaApi) {
+        setCargando(true);
+        const url=`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${criptomoneda}&tsyms=${moneda}`;
+        console.log('url: ' + url);
+        const resultado = await axios.get(url);
+        console.log('respuesta: ' + resultado.data.DISPLAY[criptomoneda][moneda]);
+        setResultado(resultado.data.DISPLAY[criptomoneda][moneda]);
+        setConsultaApi(false);
+        setCargando(false);
+      }
+    };
+    cotizarCriptomoneda();
+  }, [consultaApi]);
+
   return (
     <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+      <ScrollView>
+        <Header />
+        <Image
+          style={styles.imagen}
+          source={require('./assets/img/cryptomonedas.png')}
+        />
+
+        <View style={styles.contenido}>
+          <Formulario 
+            moneda={moneda} 
+            criptomoneda={criptomoneda}
+            setMoneda={setMoneda}
+            setCriptomoneda={setCriptomoneda}
+            setConsultaApi={setConsultaApi}/>
+        </View>
+        <View style={{ marginTop: 40}}>
+          { (cargando)? 
+            <ActivityIndicator size="large"/>: 
+            <Cotizacion resultado={resultado} />
+          }
+        </View>
+      </ScrollView>
     </>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
+  imagen: {
+    width: '100%',
+    height: 150,
+    marginHorizontal: '2.5%'
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
+  contenido: {
+    marginHorizontal: '2.5%',
+  }
 });
 
 export default App;
